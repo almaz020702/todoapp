@@ -1,22 +1,35 @@
 const { Task } = require("../models/models");
+const cookie = require ('cookie');
+const jwt = require('jsonwebtoken')
 
 class TaskController {
   async createTask(req, res) {
     try {
-      const { name, description, status, dueDate } = req.body;
-      const task = await Task.create({ name, description, status, dueDate });
+      const { name, description, status, dueDate, UserId } = req.body;
+      const task = await Task.create({
+        name,
+        description,
+        status,
+        dueDate,
+        UserId,
+      });
       return res.status(201).json({ task });
     } catch (e) {
-      res.status(500).json({ error: "Unable to create the task." });
+      res.status(500).json({ error: e.message });
     }
   }
 
   async getAllTasks(req, res) {
     try {
-      const tasks = await Task.findAll();
+      const cookies = req.cookies
+      const accessToken = cookies.accessToken;
+      const decoded = jwt.verify(accessToken, process.env.SECRET_KEY)
+      const UserId = decoded.id
+
+      const tasks = await Task.findAll({where: {UserId}});
       return res.json({ tasks });
     } catch (e) {
-      res.status(500).json({ error: "Unable to get the list of tasks" });
+      res.status(500).json({ error: e.message });
     }
   }
 
@@ -64,7 +77,7 @@ class TaskController {
       if (!taskToDelete) {
         return res.status(404).json({ error: "Task not found." });
       }
-      
+
       taskToDelete.destroy();
       res.status(204).send("A task was successfully deleted"); //НЕ ВЫХОДИТ???
     } catch (e) {

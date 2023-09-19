@@ -3,11 +3,13 @@ const express = require('express')
 const database = require('./db')
 const PORT = process.env.PORT || 3000
 const routes = require('./routes/routes')
+const cookieParser = require('cookie-parser');
 
 const app = express()
 
 app.use(express.json());
-app.use('/api', routes)
+app.use(cookieParser());
+app.use('/api', routes);
 
 const start = async () => {
     try {
